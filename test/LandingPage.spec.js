@@ -140,15 +140,6 @@ test('Reseacrh Score category tabs are clickable', async ({page}) => {
   const categoryCount = 17;
   const categoryContainer = researchContainer.locator(".researchtabs_tab_item__HHQXL");
   await expect(categoryContainer).toHaveCount(categoryCount);
-  
-  const actualCountForCategory = await categoryContainer.count();
-  // console.log(actualCountForCategory);
-
-  // for (let i = 0; i < actualCountForCategory; i++) {
-  //   const tab = categoryContainer.nth(i);
-  //   const text = await tab.innerText();
-  //   console.log(`Tab ${i + 1}: ${text}`);
-  // }
 })
 
 test('Check the Top Gainers and Top Losers is visible and 3 coins are displayed properly', async ({ page }) => {
@@ -175,7 +166,7 @@ test('Check the Top Gainers and Top Losers is visible and 3 coins are displayed 
   expect(ActualLosersCount).toBe(ExpectedLosersCount);
 });
 
-test('Check the Top Gainers and Top Losers More button leads to Filtered Listing Page', async ({page}) => {
+test('Check the Top Gainers More button functionality', async ({page}) => {
   await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
   // Top Gainers card
   const TopGainerContainer = page.locator('.ExploreCryptos_crypto_cards__9rnb8')
@@ -254,4 +245,68 @@ test('Check category-wise content updates from Research Score tab', async ({ pag
     await page.goBack();
     await expect(researchContainer).toBeVisible();
   }
+});
+
+test('Check Top Gainers listed coins are same as listing page coins when Top Gainers filter is activated', async ({ page }) => {
+  await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
+
+  const topGainerContainer = page
+    .locator('.ExploreCryptos_crypto_cards__9rnb8')
+    .filter({ hasText: 'Top Gainers' });
+  await expect(topGainerContainer).toBeVisible();
+
+  // names on home Top Gainers card
+  const cardNames = await topGainerContainer
+    .locator('li.ExploreCryptos_card_item__FK0ZV p.ExploreCryptos_crypto_name__pWSWI')
+    .evaluateAll(nodes => nodes.map(p => p.childNodes[0].textContent.trim()));
+  console.log('Top-gainer card names →', cardNames);
+
+  // go to full listing
+  await topGainerContainer.locator('.ExploreCryptos_card_header__cVkqG a').click();
+  await expect(page).toHaveURL(/primaryCategory=top-gainers/);
+
+  // wait for table rows to load
+  await page.waitForSelector('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start');
+
+  // grab names from listing table
+  const listingNames = await page
+    .locator('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start')
+    .allInnerTexts();
+    const firstThreeListing = listingNames.slice(0, 3);
+  console.log('Listing page names →', firstThreeListing);
+
+  // assert every top-card coin appears in the listing
+  cardNames.forEach(name => expect(firstThreeListing).toContain(name));
+});
+
+test('Check Top Losers listed coins are same as listing page coins when Top Losers filter is activated', async ({ page }) => {
+  await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
+
+  const topGainerContainer = page
+    .locator('.ExploreCryptos_crypto_cards__9rnb8')
+    .filter({ hasText: 'Top Losers' });
+  await expect(topGainerContainer).toBeVisible();
+
+  // names on home Top Losers card
+  const cardNames = await topGainerContainer
+    .locator('li.ExploreCryptos_card_item__FK0ZV p.ExploreCryptos_crypto_name__pWSWI')
+    .evaluateAll(nodes => nodes.map(p => p.childNodes[0].textContent.trim()));
+  console.log('Top-losers card names →', cardNames);
+
+  // go to full listing
+  await topGainerContainer.locator('.ExploreCryptos_card_header__cVkqG a').click();
+  await expect(page).toHaveURL(/primaryCategory=top-losers/);
+
+  // wait for table rows to load
+  await page.waitForSelector('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start');
+
+  // grab names from listing table
+  const listingNames = await page
+    .locator('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start')
+    .allInnerTexts();
+    const firstThreeListing = listingNames.slice(0, 3);
+  console.log('Listing page names →', firstThreeListing);
+
+  // assert every top-card coin appears in the listing
+  cardNames.forEach(name => expect(firstThreeListing).toContain(name));
 });
