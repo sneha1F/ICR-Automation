@@ -216,6 +216,42 @@ test('Research Score tabs show correct top currency', async ({ page }) => {
     // check the top currency text matches
     const topCurrency = researchScoreTab.locator('.researchscore_top_currency__tF8U2');
     await expect(topCurrency).toHaveText("Top "+categoryName+" Tokens");
-    // console.log(`✅ ${categoryName} tab verified`);
+    console.log(`✅ ${categoryName} tab verified`);
+  }
+});
+
+test('Check category-wise content updates from Research Score tab', async ({ page }) => {
+  const researchContainer = page.locator('.researchtabs_tabs_container__HEvCz');
+  const researchScoreTab = page.locator('.researchscore_research_card_container__u5szn');
+  await expect(researchContainer).toBeVisible();
+
+  const tabs = researchContainer.locator('.researchtabs_tab_item__HHQXL');
+  const count = await tabs.count();
+
+  for (let i = 0; i < count; i++) {
+    const tab = tabs.nth(i);
+    const categoryName = (await tab.innerText()).trim();
+
+    await tab.click();
+
+    const topCurrency = researchScoreTab.locator('.researchscore_top_currency__tF8U2');
+    await expect(topCurrency).toHaveText(`Top ${categoryName} Tokens`);
+
+    // click View All
+    const viewAllButton = researchScoreTab.locator('.researchscore_desktop_view_all__Iqi_G');
+    await viewAllButton.click();
+
+    // 💡 create the slug (formatted version) from categoryName
+    const categorySlug = categoryName
+      .toLowerCase()
+      .replace(/\s+/g, '-')     // spaces → dash
+      .replace(/[^\w-]/g, '');  // strip non-alphanumeric/dash
+
+    // ✅ assert URL contains the slug
+    await expect(page).toHaveURL(new RegExp(categorySlug, 'i'));
+
+    // optional: go back to test next tab
+    await page.goBack();
+    await expect(researchContainer).toBeVisible();
   }
 });
