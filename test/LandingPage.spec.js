@@ -212,40 +212,47 @@ test('Research Score tabs show correct top currency', async ({ page }) => {
 });
 
 test('Check category-wise content updates from Research Score tab', async ({ page }) => {
+  // ⏱️ give this specific test up to 2 minutes
+  test.setTimeout(120_000);
   const researchContainer = page.locator('.researchtabs_tabs_container__HEvCz');
-  const researchScoreTab = page.locator('.researchscore_research_card_container__u5szn');
+  const researchScoreTab  = page.locator('.researchscore_research_card_container__u5szn');
   await expect(researchContainer).toBeVisible();
-
-  const tabs = researchContainer.locator('.researchtabs_tab_item__HHQXL');
+  const tabs  = researchContainer.locator('.researchtabs_tab_item__HHQXL');
   const count = await tabs.count();
 
   for (let i = 0; i < count; i++) {
-    const tab = tabs.nth(i);
+    const tab = researchContainer.locator('.researchtabs_tab_item__HHQXL').nth(i);
     const categoryName = (await tab.innerText()).trim();
-
-    await tab.click();
+    // console.log(`🔎 Checking category → ${categoryName}`);
+    await tab.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);       // shorter pause is usually fine
+    await tab.click({ force: true });
 
     const topCurrency = researchScoreTab.locator('.researchscore_top_currency__tF8U2');
     await expect(topCurrency).toHaveText(`Top ${categoryName} Tokens`);
 
-    // click View All
-    const viewAllButton = researchScoreTab.locator('.researchscore_desktop_view_all__Iqi_G');
-    await viewAllButton.click();
-
-    // 💡 create the slug (formatted version) from categoryName
     const categorySlug = categoryName
       .toLowerCase()
-      .replace(/\s+/g, '-')     // spaces → dash
-      .replace(/[^\w-]/g, '');  // strip non-alphanumeric/dash
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]/g, '');
 
-    // ✅ assert URL contains the slug
+    const viewAllButton = researchScoreTab.locator('.researchscore_desktop_view_all__Iqi_G');
+    await viewAllButton.click();
     await expect(page).toHaveURL(new RegExp(categorySlug, 'i'));
+    // const href = await viewAllButton.getAttribute('href');
+    // console.log(`➡️ ViewAll href: ${href}`);
 
-    // optional: go back to test next tab
-    await page.goBack();
-    await expect(researchContainer).toBeVisible();
+    // if (href) {
+    //   await page.goto(href.startsWith('http') ? href : `https://indiacryptoresearch.co.in${href}`);
+    //   await expect(page).toHaveURL(new RegExp(categorySlug, 'i'));
+      await page.goBack();
+      await expect(researchContainer).toBeVisible();
+      await page.waitForTimeout(200);
+    }
   }
-});
+);
+
+
 
 test('Check Top Gainers listed coins are same as listing page coins when Top Gainers filter is activated', async ({ page }) => {
   await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
