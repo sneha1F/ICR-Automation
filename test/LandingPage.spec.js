@@ -75,17 +75,6 @@ test('Trending Cryptos is visible and contains 4 coins', async ({ page }) => {
   await expect(trendingContainer).toBeVisible();
   await expect(heading).toHaveText("TRENDING CRYPTOS");
   await expect(trending).toHaveCount(trendingCoinsCount);
-
-  const actualCountForTrending = await trending.count();
-
-  // Loop safely through the items
-  for (let i = 0; i < actualCountForTrending; i++) {
-    try {
-      const coinText = await trending.nth(i).innerText();
-    } catch (err) {
-      console.error(`⚠️ Could not read text for Trending Coin ${i + 1}: ${err.message}`);
-    }
-  }
 });
 
 test('Trending cryptos to contain coin Logo, Symbol, Percent Change and Price', async ({ page }) => {
@@ -135,7 +124,7 @@ test('Check the "View all 900+ cryptos" link is working properly', async ({ page
 });
 
 test('Reseacrh Score category tabs are clickable', async ({page}) => {
-  const researchContainer = await page.locator('.researchtabs_tabs_container__HEvCz');
+  const researchContainer = page.locator('.researchtabs_tabs_container__HEvCz');
   await expect(researchContainer).toBeVisible();
   const categoryCount = 17;
   const categoryContainer = researchContainer.locator(".researchtabs_tab_item__HHQXL");
