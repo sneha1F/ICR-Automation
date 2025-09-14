@@ -317,3 +317,23 @@ test('Check Top Losers listed coins are same as listing page coins when Top Lose
   // assert every top-card coin appears in the listing
   cardNames.forEach(name => expect(firstThreeListing).toContain(name));
 });
+
+test('Blog section exists or not', async ({ page }) => {
+  // Correct combined classes with escaped colon
+  const blogSection = page.locator('.blog.pt-14.sm\\:pt-20');
+
+  await expect(blogSection).toBeVisible();
+  await expect(blogSection).toHaveText(/BLOGS/i);
+
+  // ✅ All blog titles inside the blog section
+  const blogTitles = blogSection.locator('h4.line-clamp-2.text-left.text-lg-regular');
+
+  // 🔑 Count how many blogs there are
+  const count = await blogTitles.count();
+  console.log(`Total blogs displayed: ${count}`);
+
+  // Loop through each title and print the text
+  for (let i = 0; i < count; i++) {
+    await expect(blogTitles.nth(i)).toBeVisible();
+  }
+});
