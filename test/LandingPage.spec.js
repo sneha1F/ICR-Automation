@@ -316,6 +316,31 @@ test('Blog section exists or not', async ({ page }) => {
   }
 });
 
-test('Functionality of Blogs in blog section',async ({page}) => {
-  
-})
+test('Functionality of Blogs in blog section', async ({ page }) => {
+  const sectionSelector = '.blog.pt-14.sm\\:pt-20';
+  const titleSelector   = 'h4.line-clamp-2.text-left.text-lg-regular';
+  const blogSection = page.locator(sectionSelector);
+  await expect(blogSection).toBeVisible();
+  const total = await blogSection.locator(titleSelector).count();
+  console.log(`Total blogs displayed: ${total}`);
+
+  for (let i = 0; i < total; i++) {
+    const titles = blogSection.locator(titleSelector);
+    const title  = titles.nth(i);
+    await expect(title).toBeVisible();
+    const text = await title.innerText();
+
+    // slugify and clean up
+    const expectedSlug = text
+      .toLowerCase()
+      .replace(/\s+/g, '-')       // spaces → hyphens
+      .replace(/[^\w-]/g, '')     // strip non-word chars
+      .replace(/-+/g, '-');       // collapse double hyphens
+
+    await title.click();
+    await expect(page).toHaveURL(new RegExp(`/learn/blogs/${expectedSlug}$`, 'i'));
+
+    await page.goBack();
+    await page.waitForSelector(sectionSelector);
+  }
+});
