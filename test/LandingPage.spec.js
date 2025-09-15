@@ -315,3 +315,7 @@ test('Blog section exists or not', async ({ page }) => {
     await expect(blogTitles.nth(i)).toBeVisible();
   }
 });
+
+test('Functionality of Blogs in blog section',async ({page}) => {
+  
+})

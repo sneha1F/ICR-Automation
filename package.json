@@ -1,21 +1,8 @@
 {
   "dependencies": {
-    "chromedriver": "^137.0.0",
     "playwright": "^1.55.0",
-    "puppeteer": "^24.18.0",
-    "selenium-webdriver": "^4.33.0",
-    "xlsx": "^0.18.5"
+    "test": "^3.3.0"
   },
-  "name": "icr-automation",
-  "version": "1.0.0",
-  "description": "",
-  "main": "search-bar.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@playwright/test": "^1.55.0"
   }
