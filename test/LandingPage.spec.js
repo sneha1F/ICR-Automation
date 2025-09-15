@@ -145,13 +145,11 @@ test('Check the Top Gainers and Top Losers is visible and 3 coins are displayed 
   // Count number of coins inside Top Gainers
   const ExpectedGainersCount = 3; // adjust based on UI expectation
   const ActualGainersCount = await TopGainerContainer.locator('li.ExploreCryptos_card_item__FK0ZV').count();
-  // console.log('Top Gainers → Expected:', ExpectedGainersCount, 'Actual:', ActualGainersCount);
   expect(ActualGainersCount).toBe(ExpectedGainersCount);
 
   // Count number of coins inside Top Losers
   const ExpectedLosersCount = 3; // adjust based on UI expectation
   const ActualLosersCount = await TopLosersContainer.locator('li.ExploreCryptos_card_item__FK0ZV').count();
-  // console.log('Top Losers → Expected:', ExpectedLosersCount, 'Actual:', ActualLosersCount);
   expect(ActualLosersCount).toBe(ExpectedLosersCount);
 });
 
@@ -163,7 +161,7 @@ test('Check the Top Gainers More button functionality', async ({page}) => {
   await expect(TopGainerContainer).toBeVisible();
   
   //Top Gainers Card More button
-  const TopGainerMore = await TopGainerContainer.locator(".ExploreCryptos_card_header__cVkqG a");
+  const TopGainerMore = TopGainerContainer.locator(".ExploreCryptos_card_header__cVkqG a");
   await TopGainerMore.click();
   await expect(page).toHaveURL(/.*crypto\?page=1&row=20&primaryCategory=top-gainers&secondaryCategory=All&sortby=percent_change_24h&orderby=desc$/);
   
@@ -176,7 +174,7 @@ test('Check Top Losers More button functionality', async ({page}) => {
     .filter({ hasText: 'Top Losers' });
   await expect(TopLosersContainer).toBeVisible();
   // Top Losers Card More button
-  const TopLosersMore = await TopLosersContainer.locator(".ExploreCryptos_card_header__cVkqG a");
+  const TopLosersMore = TopLosersContainer.locator(".ExploreCryptos_card_header__cVkqG a");
   await TopLosersMore.click();
   await expect(page).toHaveURL(/.*crypto\?page=1&row=20&primaryCategory=top-losers&secondaryCategory=All&sortby=percent_change_24h&orderby=asc$/);
 })
@@ -212,7 +210,6 @@ test('Check category-wise content updates from Research Score tab', async ({ pag
   for (let i = 0; i < count; i++) {
     const tab = researchContainer.locator('.researchtabs_tab_item__HHQXL').nth(i);
     const categoryName = (await tab.innerText()).trim();
-    // console.log(`🔎 Checking category → ${categoryName}`);
     await tab.scrollIntoViewIfNeeded();
     await page.waitForTimeout(300);       // shorter pause is usually fine
     await tab.click({ force: true });
@@ -228,20 +225,12 @@ test('Check category-wise content updates from Research Score tab', async ({ pag
     const viewAllButton = researchScoreTab.locator('.researchscore_desktop_view_all__Iqi_G');
     await viewAllButton.click();
     await expect(page).toHaveURL(new RegExp(categorySlug, 'i'));
-    // const href = await viewAllButton.getAttribute('href');
-    // console.log(`➡️ ViewAll href: ${href}`);
-
-    // if (href) {
-    //   await page.goto(href.startsWith('http') ? href : `https://indiacryptoresearch.co.in${href}`);
-    //   await expect(page).toHaveURL(new RegExp(categorySlug, 'i'));
       await page.goBack();
       await expect(researchContainer).toBeVisible();
       await page.waitForTimeout(200);
     }
   }
 );
-
-
 
 test('Check Top Gainers listed coins are same as listing page coins when Top Gainers filter is activated', async ({ page }) => {
   await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
