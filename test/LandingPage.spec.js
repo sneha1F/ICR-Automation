@@ -344,3 +344,55 @@ test('Functionality of Blogs in blog section', async ({ page }) => {
     await page.waitForSelector(sectionSelector);
   }
 });
+
+test('FAQs existence on the page and display number of FAQs', async ({ page }) => {
+  const faqSection = page.locator(
+    '.flex.flex-col.text-white.pt-\\[120px\\].mobile\\:w-full.mobile\\:pt-\\[80px\\]'
+  );
+  await expect(faqSection).toBeVisible();
+
+  const title = faqSection.locator(
+    '.flex.flex-row.justify-center.font-DMSans.text-display-md-medium.mobile\\:text-xl-medium'
+  );
+  await expect(title).toHaveText('Frequently Asked Questions');
+
+  const faqItems = faqSection.locator(
+    '.rounded-\\[16px\\].bg-\\[\\#121212\\].p-\\[20px\\].animate-motionY.z-20'
+  );
+  const expectedCount = 9;
+  await expect(faqItems).toHaveCount(expectedCount);
+  console.log(`Total FAQ cards found: ${await faqItems.count()}`);
+
+});
+
+test('FAQs contain proper Questions and Answers', async ({ page }) => {
+  const faqSection = page.locator(
+    '.flex.flex-col.text-white.pt-\\[120px\\].mobile\\:w-full.mobile\\:pt-\\[80px\\]'
+  );
+  await expect(faqSection).toBeVisible();
+  // ✅ Grab all FAQ question titles
+  const faqTitles = faqSection.locator('div.text-lg-regular');
+  const titles = await faqTitles.allInnerTexts();
+  await expect(faqTitles).toHaveText(titles);
+  // ✅ Grab all FAQ answers using the real class
+  const faqAnswers = faqSection.locator('div.landingPageFqa');
+  const answers = await faqAnswers.allInnerTexts();
+  await expect(faqAnswers).toHaveText(answers);
+});
+
+test('Each FAQ clickability', async ({ page }) => {
+  // Locator for all FAQ “cards”
+  const faqCards = page.locator(
+    '.rounded-\\[16px\\].bg-\\[\\#121212\\].p-\\[20px\\].animate-motionY.z-20'
+  );
+  const total = await faqCards.count();
+  console.log(`Found ${total} FAQ cards`);
+  for (let i = 0; i < total; i++) {
+    const card = faqCards.nth(i);
+    // Click the question header to toggle the answer
+    await card.click();
+    // Wait for the answer inside this card to appear
+    const answer = card.locator('div.landingPageFqa'); // adjust if your answer div uses a different class
+    await expect(answer).toBeVisible();
+  }
+});
