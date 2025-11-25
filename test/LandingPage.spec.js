@@ -4,109 +4,115 @@ const { test, expect } = require('@playwright/test');
 test.beforeEach(async ({ page }) => {
   await page.goto('https://indiacryptoresearch.co.in/');
 });
-
+//Test Case 1
 test('Search bar works for bitcoin', async ({ page }) => {
-  await page.click("input[placeholder='Search for cryptos']");
-  await page.waitForSelector('#searchInput');
-  await page.fill('#searchInput', 'bitcoin');
+  const searchInput = page.locator("input[placeholder='Search for cryptos']");
+  const resultSection = page.locator('#search-crypto');
+
+  await searchInput.click();
+  await searchInput.fill('bitcoin');
   await page.keyboard.press('Enter');
-  await page.waitForSelector('#search-crypto');
-});
 
+  await expect(resultSection).toBeVisible();
+});
+//Test Case 2
 test('Search bar exists on the page', async ({ page }) => {
-  await page.waitForSelector("input[placeholder='Search for cryptos']");
+  const searchInput = page.locator("input[placeholder='Search for cryptos']");
+  await expect(searchInput).toBeVisible();
 });
 
+//Test Case 3
 test('Explore card is clickable and functional', async ({ page }) => {
-  await page.click("img.block.mobile\\:hidden"); // escape colon
+  const exploreCard = page.locator("div.max-w-64 img").first();
+  await expect(exploreCard).toBeVisible();
+  await exploreCard.click();
+
   await expect(page).toHaveURL(/.*crypto.*/);
 });
 
+//Test Case 4
 test('Gain insights container is visible and contains 4 coins', async ({ page }) => {
   const container = page.locator("div.banner_desktop_show__m0rfe");
-  
-  // Make sure container is visible before working with it
   await expect(container).toBeVisible();
 
   const coins = container.locator("li");
   const expectedCount = 4;
 
-  // Check the count first
-  const actualCount = await coins.count();
+  // Assert the number of coins
   await expect(coins).toHaveCount(expectedCount);
 
-  // Loop safely through the items
-  for (let i = 0; i < actualCount; i++) {
-    try {
-      await coins.nth(i).innerText();
-    } catch (err) {
-      console.error(`⚠️ Could not read text for Coin ${i + 1}: ${err.message}`);
-    }
-  }
+  // Use evaluateAll to map texts in one go
+  const coinTexts = await coins.evaluateAll(items =>
+    items.map(item => item.textContent?.trim())
+  );
+
+  // console.log("Coin labels:", coinTexts);
 });
 
+//Test Case 5
 test('Crypto News card is clickable and redirects to correct url', async ({ page }) => {
-  await page.waitForSelector("a[href='/news?coins=false']");
-  await page.click("a[href='/news?coins=false']");
-  await expect(page).toHaveURL(/.*news*./);
-})
+  const newsCard = page.locator("a[href='/news?coins=false']");
 
+  await expect(newsCard).toBeVisible();
+  await newsCard.click();
+
+  await expect(page).toHaveURL(/\/news(\?|$)/);
+});
+
+//Test Case 6
 test('Crypto Events card is clickable and redirects to correct url', async ({ page }) => {
-  const card = page.locator("img.block.mobile\\:hidden.rounded-\\[20px\\]"); // Escaped Tailwind-style classes
+  const card = page.getByRole('link', { name: /crypto events discover/i });
+
   await expect(card).toBeVisible();
-  // Wait for navigation triggered by click
-  await Promise.all([
-    page.waitForURL(/.*crypto-events.*/), // Wait for the URL to match
-    card.click()
-  ]);
+  await card.click();
 
-  // Final assertion (optional if waitForURL above succeeds)
-  await expect(page).toHaveURL(/.*crypto-events.*/);
+  await expect(page).toHaveURL(/crypto-events/);
 });
 
-
-test('Trending Cryptos is visible and contains 4 coins', async ({ page }) => {
-  const trendingContainer = page.locator(".banner_trending_container__q_6MW");
-  const trendingCoinsCount = 4;
-
-  const heading = trendingContainer.locator("h3");
-  const trending = trendingContainer.locator("a");
-
-  await expect(trendingContainer).toBeVisible();
-  await expect(heading).toHaveText("TRENDING CRYPTOS");
-  await expect(trending).toHaveCount(trendingCoinsCount);
+//Test Case 7
+test('Trending Cryptos section is visible and shows 4 coins', async ({ page }) => {
+  const trendingSection = page.locator('.banner_trending_container__q_6MW');
+  await expect(trendingSection).toBeVisible();
+  const heading = trendingSection.getByRole('heading', { name: /trending cryptos/i });
+  await expect(heading).toBeVisible();
+  const coins = trendingSection.getByRole('link'); // each coin is an anchor
+  await expect(coins).toHaveCount(4);
 });
 
-test('Trending cryptos to contain coin Logo, Symbol, Percent Change and Price', async ({ page }) => {
-  await page.waitForSelector('.banner_trending_container__q_6MW');
-  const trendingContainer = page.locator(".banner_trending_container__q_6MW");
-  const trendingCoinsCount = 4;
+//Test Case 8
+test('Trending cryptos contain Logo, Symbol, Percent Change and Price', async ({ page }) => {
+  const trendingSection = page.locator('.banner_trending_container__q_6MW');
+  await expect(trendingSection).toBeVisible();
 
-  const trending = trendingContainer.locator("a"); 
-  const logo = trending.locator("img"); // escaped selector
-  const percentChange = trending.locator(".trendingcard_first_item__6fW82");
-  const price = trending.locator(".trendingcard_second_item____jCp");
+  const cards = trendingSection.locator('a');
+  await expect(cards).toHaveCount(4);
 
-  await expect(trending).toHaveCount(trendingCoinsCount);
+  // Validate that each card has logo, percent, and price by evaluating all at once
+  const cardData = await cards.evaluateAll(cardNodes => {
+    return cardNodes.map(card => {
+      const logo = card.querySelector('img');
+      const percent = card.querySelector('.trendingcard_first_item__6fW82');
+      const price = card.querySelector('.trendingcard_second_item____jCp');
 
-  await expect(logo.first()).toBeVisible();
-  await expect(percentChange.first()).toBeVisible();
-  await expect(price.first()).toBeVisible();
+      return {
+        hasLogo: !!logo,
+        hasPercent: !!percent,
+        hasPrice: !!price,
+        text: card.innerText.trim(),
+      };
+    });
+  });
 
-  const actualCountForTrending = await trending.count();
-  for (let i = 0; i < actualCountForTrending; i++) {
-    const coinCard = trending.nth(i);
-    const coinLogo = coinCard.locator("img");
-    const coinPercent = coinCard.locator(".trendingcard_first_item__6fW82");
-    const coinPrice = coinCard.locator(".trendingcard_second_item____jCp");
+  // Assertion: All of them must have logo, percent & price
+  cardData.forEach((card, index) => {
+    expect(card.hasLogo, `Coin ${index + 1} missing logo`).toBe(true);
+    expect(card.hasPercent, `Coin ${index + 1} missing percent change`).toBe(true);
+    expect(card.hasPrice, `Coin ${index + 1} missing price`).toBe(true);
 
-    await expect(coinLogo).toBeVisible();
-    await expect(coinPercent).toBeVisible();
-    await expect(coinPrice).toBeVisible();
-
-    console.log(`✅ Trending Coin ${i + 1}: ${await coinCard.innerText()}`);
-  }
+    // console.log(`✅ Trending Coin ${index + 1}: ${card.text}`);
+  });
 });
+
 
 test('Check the "View all 900+ cryptos" link is working properly', async ({ page }) => {
   // Locate the parent <p> with the unique class

@@ -6,7 +6,7 @@ on:
   #   branches: [ main ]
   workflow_dispatch:
   schedule:
-    - cron: "20 11 * * *"
+    - cron: "0 */4 * * *"
 jobs:
   test:
     timeout-minutes: 60
