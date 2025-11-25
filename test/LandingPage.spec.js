@@ -1,8 +1,10 @@
+require('dotenv').config(); 
 const { test, expect } = require('@playwright/test');
 
 // Run before every test
 test.beforeEach(async ({ page }) => {
-  await page.goto('https://indiacryptoresearch.co.in/');
+  const URL=process.env.URL;
+  await page.goto(URL);
 });
 //Test Case 1
 test('Search bar works for bitcoin', async ({ page }) => {
@@ -113,130 +115,224 @@ test('Trending cryptos contain Logo, Symbol, Percent Change and Price', async ({
   });
 });
 
+//Test Case 9
+test('View all 950+ cryptos link navigates to crypto page', async ({ page }) => {
+  const viewAll = page.getByRole('link', { name: /view all .* cryptos/i });
 
-test('Check the "View all 900+ cryptos" link is working properly', async ({ page }) => {
-  // Locate the parent <p> with the unique class
-  const container = page.locator(
-    "p[class='explorecrypto_view_crypto__YOAc1 font-DMSans text-md-regular cursor-pointer']"
+  await expect(viewAll).toBeVisible();
+  await viewAll.click();
+
+  await expect(page).toHaveURL(/\/crypto/);
+});
+
+//Test Case 10
+test('Research Score category tabs are clickable', async ({ page }) => {
+  const tabsContainer = page.locator('.researchtabs_tabs_container__HEvCz');
+  await expect(tabsContainer).toBeVisible();
+
+  // Wait for global overlay to disappear
+  const overlay = page.locator(String.raw`.fixed.inset-0.z-\[99999\]`);
+  await overlay.waitFor({ state: 'detached' }).catch(() => {});
+
+  const tabs = tabsContainer.locator('.researchtabs_tab_item__HHQXL');
+  await expect(tabs).toHaveCount(17);
+
+  const tabNames = await tabs.evaluateAll(nodes =>
+    nodes.map(n => n.textContent?.trim())
   );
-  // Wait for it to be visible
-  await expect(container).toBeVisible();
-  // Get the <a> inside the container
-  const link = container.locator('a');
-  // Wait for it to be visible and click
-  await expect(link).toBeVisible();
-  await link.click();
-  // Verify URL contains "crypto"
-  await expect(page).toHaveURL(/.*crypto.*/);
-});
 
-test('Reseacrh Score category tabs are clickable', async ({page}) => {
-  const researchContainer = page.locator('.researchtabs_tabs_container__HEvCz');
-  await expect(researchContainer).toBeVisible();
-  const categoryCount = 17;
-  const categoryContainer = researchContainer.locator(".researchtabs_tab_item__HHQXL");
-  await expect(categoryContainer).toHaveCount(categoryCount);
-})
+  for (const name of tabNames) {
+    const tab = page.getByText(name, { exact: true });
+    await expect(tab).toBeVisible();
 
-test('Check the Top Gainers and Top Losers is visible and 3 coins are displayed properly', async ({ page }) => {
-  await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
-  // Top Gainers card
-  const TopGainerContainer = page.locator('.ExploreCryptos_crypto_cards__9rnb8')
-    .filter({ hasText: 'Top Gainers' });
-  await expect(TopGainerContainer).toBeVisible();
-  // Top Losers card
-  const TopLosersContainer = page.locator('.ExploreCryptos_crypto_cards__9rnb8')
-    .filter({ hasText: 'Top Losers' });
-  await expect(TopLosersContainer).toBeVisible();
-
-  // Count number of coins inside Top Gainers
-  const ExpectedGainersCount = 3; // adjust based on UI expectation
-  const ActualGainersCount = await TopGainerContainer.locator('li.ExploreCryptos_card_item__FK0ZV').count();
-  expect(ActualGainersCount).toBe(ExpectedGainersCount);
-
-  // Count number of coins inside Top Losers
-  const ExpectedLosersCount = 3; // adjust based on UI expectation
-  const ActualLosersCount = await TopLosersContainer.locator('li.ExploreCryptos_card_item__FK0ZV').count();
-  expect(ActualLosersCount).toBe(ExpectedLosersCount);
-});
-
-test('Check the Top Gainers More button functionality', async ({page}) => {
-  await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
-  // Top Gainers card
-  const TopGainerContainer = page.locator('.ExploreCryptos_crypto_cards__9rnb8')
-    .filter({ hasText: 'Top Gainers' });
-  await expect(TopGainerContainer).toBeVisible();
-  
-  //Top Gainers Card More button
-  const TopGainerMore = TopGainerContainer.locator(".ExploreCryptos_card_header__cVkqG a");
-  await TopGainerMore.click();
-  await expect(page).toHaveURL(/.*crypto\?page=1&row=20&primaryCategory=top-gainers&secondaryCategory=All&sortby=percent_change_24h&orderby=desc$/);
-  
-})
-
-test('Check Top Losers More button functionality', async ({page}) => {
-  await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
-  // Top Losers card
-  const TopLosersContainer = page.locator('.ExploreCryptos_crypto_cards__9rnb8')
-    .filter({ hasText: 'Top Losers' });
-  await expect(TopLosersContainer).toBeVisible();
-  // Top Losers Card More button
-  const TopLosersMore = TopLosersContainer.locator(".ExploreCryptos_card_header__cVkqG a");
-  await TopLosersMore.click();
-  await expect(page).toHaveURL(/.*crypto\?page=1&row=20&primaryCategory=top-losers&secondaryCategory=All&sortby=percent_change_24h&orderby=asc$/);
-})
-
-test('Research Score tabs show correct top currency', async ({ page }) => {
-  const researchContainer = page.locator('.researchtabs_tabs_container__HEvCz');
-  const researchScoreTab = page.locator('.researchscore_research_card_container__u5szn');
-  await expect(researchContainer).toBeVisible();
-  // grab all tab elements
-  const tabs = researchContainer.locator('.researchtabs_tab_item__HHQXL');
-  const count = await tabs.count();
-  for (let i = 0; i < count; i++) {
-    const tab = tabs.nth(i);
-    const categoryName = await tab.innerText();   // the label we expect to see
-    // click the tab
-    await tab.click();
-    // check the top currency text matches
-    const topCurrency = researchScoreTab.locator('.researchscore_top_currency__tF8U2');
-    await expect(topCurrency).toHaveText("Top "+categoryName+" Tokens");
+    await tab.click({ force: true }); // ☑️ if overlay is flaky
   }
 });
 
+//Test Case 11
+test('Top Gainers & Top Losers sections show 3 coins each', async ({ page }) => {
+  const cards = page.locator('.ExploreCryptos_crypto_cards__9rnb8');
+
+  // Identify the Top Gainers card
+  const gainers = cards.filter({ hasText: /top gainers/i });
+  await expect(gainers).toBeVisible();
+
+  // Identify the Top Losers card
+  const losers = cards.filter({ hasText: /top losers/i });
+  await expect(losers).toBeVisible();
+
+  // Each card should have its own <li> list inside
+  const gainersCoins = gainers.locator('li');
+  const losersCoins  = losers.locator('li');
+
+  await expect(gainersCoins).toHaveCount(3);
+  await expect(losersCoins).toHaveCount(3);
+
+  // BONUS: Map each list item's text (optional)
+  // const gainersData = await gainersCoins.evaluateAll(nodes =>
+  //   nodes.map(n => n.textContent?.trim())
+  // );
+
+  // const losersData = await losersCoins.evaluateAll(nodes =>
+  //   nodes.map(n => n.textContent?.trim())
+  // );
+
+  // console.log('🔥 Top Gainers:', gainersData);
+  // console.log('❄️ Top Losers:', losersData);
+});
+
+//Test Case 12
+test('Top Gainers "More" button works properly', async ({ page }) => {
+  // Target the Top Gainers card by visible text — not brittle classnames
+  const gainersCard = page
+    .locator('.ExploreCryptos_crypto_cards__9rnb8')
+    .filter({ hasText: /top gainers/i });
+    await expect(gainersCard).toBeVisible();
+ 
+  // Locate the "More" button inside the card
+  const moreButton = gainersCard.getByRole('link', { name: /more/i });
+  await expect(moreButton).toBeVisible();
+  await moreButton.click();
+
+  // Verify redirection URL
+  await expect(page).toHaveURL(
+    /\/crypto\?page=1&row=20&primaryCategory=top-gainers&secondaryCategory=All&sortby=percent_change_24h&orderby=desc$/
+  );
+});
+
+//Test Case 13
+test('Top Losers "More" button works properly', async ({ page }) => {
+  // Find the Top Losers card by visible text
+  const losersCard = page
+    .locator('.ExploreCryptos_crypto_cards__9rnb8')
+    .filter({ hasText: /top losers/i });
+    await expect(losersCard).toBeVisible();
+
+  // Find the More button by role instead of CSS
+  const moreButton = losersCard.getByRole('link', { name: /more/i });
+  await expect(moreButton).toBeVisible();
+  await moreButton.click();
+
+  // Confirm navigation goes to the correct place
+  await expect(page).toHaveURL(
+    /\/crypto\?page=1&row=20&primaryCategory=top-losers&secondaryCategory=All&sortby=percent_change_24h&orderby=asc$/
+  );
+});
+
+//Test Case 14
+test('Research Score tabs show correct top currency', async ({ page }) => {
+  const tabsContainer = page.locator('.researchtabs_tabs_container__HEvCz');
+  const title         = page.locator('.researchscore_top_currency__tF8U2');
+
+  await expect(tabsContainer).toBeVisible();
+  const popup = page.locator('div.animate-popupFadeIn');
+  const closeBtn = popup.locator('div.absolute.top-5.right-5');
+
+  const dismissPopupIfVisible = async () => {
+    if (await popup.isVisible()) {
+      await closeBtn.click({ force: true });
+      await popup.waitFor({ state: "detached" });
+    }
+  };
+
+  // Get tab names FAST
+  const tabNames = await tabsContainer
+    .locator('.researchtabs_tab_item__HHQXL')
+    .evaluateAll(nodes => nodes.map(n => n.textContent.trim()));
+
+  for (const name of tabNames) {
+
+    // Close popup BEFORE clicking any tab
+    await dismissPopupIfVisible();
+
+    const tab = tabsContainer.getByText(name, { exact: true });
+
+    // Click + wait for title update
+    await Promise.all([
+      tab.click({ force: true }),
+      title.waitFor({ state: "visible" })
+    ]);
+
+    // Dynamic assertion
+    await expect(title).toHaveText(`Top ${name} Tokens`);
+  }
+});
+
+//Test Case 15
 test('Check category-wise content updates from Research Score tab', async ({ page }) => {
-  // ⏱️ give this specific test up to 2 minutes
   test.setTimeout(120_000);
-  const researchContainer = page.locator('.researchtabs_tabs_container__HEvCz');
-  const researchScoreTab  = page.locator('.researchscore_research_card_container__u5szn');
-  await expect(researchContainer).toBeVisible();
-  const tabs  = researchContainer.locator('.researchtabs_tab_item__HHQXL');
+
+  const tabsContainer    = page.locator('.researchtabs_tabs_container__HEvCz');
+  const researchScoreTab = page.locator('.researchscore_research_card_container__u5szn');
+  const title            = researchScoreTab.locator('.researchscore_top_currency__tF8U2');
+
+  // ---------- POPUP HANDLER ----------
+  const popup     = page.locator('div.animate-popupFadeIn');
+  const closeBtn  = popup.locator('div.absolute.top-5.right-5');
+
+  const dismissPopupIfVisible = async () => {
+    if (await popup.isVisible()) {
+      await closeBtn.click({ force: true });
+      await popup.waitFor({ state: 'detached' });
+    }
+  };
+
+  // Close popup at the very beginning
+  await dismissPopupIfVisible();
+  // -----------------------------------
+
+  // Wait for section to exist in DOM
+  await page.waitForSelector('.researchtabs_tabs_container__HEvCz', { state: 'attached' });
+
+  // Scroll to section
+  await tabsContainer.scrollIntoViewIfNeeded();
+
+  // If popup appears again due to scroll/timeout — close again
+  await dismissPopupIfVisible();
+
+  // NOW assert visibility
+  await expect(tabsContainer).toBeVisible();
+
+  const tabs = tabsContainer.locator('.researchtabs_tab_item__HHQXL');
   const count = await tabs.count();
 
   for (let i = 0; i < count; i++) {
-    const tab = researchContainer.locator('.researchtabs_tab_item__HHQXL').nth(i);
+
+    // ensure popup hasn't reappeared
+    await dismissPopupIfVisible();
+
+    const tab = tabs.nth(i);
     const categoryName = (await tab.innerText()).trim();
+
     await tab.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(300);       // shorter pause is usually fine
     await tab.click({ force: true });
 
-    const topCurrency = researchScoreTab.locator('.researchscore_top_currency__tF8U2');
-    await expect(topCurrency).toHaveText(`Top ${categoryName} Tokens`);
+    await expect(title).toHaveText(`Top ${categoryName} Tokens`);
 
-    const categorySlug = categoryName
+    const slug = categoryName
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^\w-]/g, '');
 
+    // click "view all"
     const viewAllButton = researchScoreTab.locator('.researchscore_desktop_view_all__Iqi_G');
     await viewAllButton.click();
-    await expect(page).toHaveURL(new RegExp(categorySlug, 'i'));
-      await page.goBack();
-      await expect(researchContainer).toBeVisible();
-      await page.waitForTimeout(200);
-    }
+
+    await expect(page).toHaveURL(new RegExp(slug, 'i'));
+
+    await page.goBack();
+
+    // section is out of view; scroll again
+    await page.waitForSelector('.researchtabs_tabs_container__HEvCz', { state: 'attached' });
+
+    await tabsContainer.scrollIntoViewIfNeeded();
+    await dismissPopupIfVisible();
+    await expect(tabsContainer).toBeVisible();
   }
-);
+});
+
+
+
 
 test('Check Top Gainers listed coins are same as listing page coins when Top Gainers filter is activated', async ({ page }) => {
   await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
