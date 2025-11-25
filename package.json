@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "dotenv": "^17.2.3",
     "playwright": "^1.55.0",
     "test": "^3.3.0"
   },
@@ -7,6 +8,6 @@
     "@playwright/test": "^1.55.0"
   },
   "scripts": {
-    "test":"npx playwright test"
+    "test": "npx playwright test"
   }
 }
