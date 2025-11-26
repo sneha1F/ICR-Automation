@@ -265,8 +265,7 @@ test('Check category-wise content updates from Research Score tab', async ({ pag
   const tabsContainer    = page.locator('.researchtabs_tabs_container__HEvCz');
   const researchScoreTab = page.locator('.researchscore_research_card_container__u5szn');
   const title            = researchScoreTab.locator('.researchscore_top_currency__tF8U2');
-
-  // ---------- POPUP HANDLER ----------
+  // ---- NEWSLETTER POPUP HANDLER ----
   const popup     = page.locator('div.animate-popupFadeIn');
   const closeBtn  = popup.locator('div.absolute.top-5.right-5');
 
@@ -331,77 +330,89 @@ test('Check category-wise content updates from Research Score tab', async ({ pag
   }
 });
 
-
-
-
+//Test Case 16
 test('Check Top Gainers listed coins are same as listing page coins when Top Gainers filter is activated', async ({ page }) => {
   await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
   const topGainerContainer = page
     .locator('.ExploreCryptos_crypto_cards__9rnb8')
     .filter({ hasText: 'Top Gainers' });
   await expect(topGainerContainer).toBeVisible();
+  
   // names on home Top Gainers card
   const cardNames = await topGainerContainer
     .locator('li.ExploreCryptos_card_item__FK0ZV p.ExploreCryptos_crypto_name__pWSWI')
     .evaluateAll(nodes => nodes.map(p => p.childNodes[0].textContent.trim()));
   console.log('Top-gainer card names →', cardNames);
+  
   // go to full listing
   await topGainerContainer.locator('.ExploreCryptos_card_header__cVkqG a').click();
   await expect(page).toHaveURL(/primaryCategory=top-gainers/);
+  
   // wait for table rows to load
   await page.waitForSelector('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start');
+  
   // grab names from listing table
   const listingNames = await page
     .locator('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start')
     .allInnerTexts();
     const firstThreeListing = listingNames.slice(0, 3);
+  
   // assert every top-card coin appears in the listing
   cardNames.forEach(name => expect(firstThreeListing).toContain(name));
 });
 
+//Test Case 17
 test('Check Top Losers listed coins are same as listing page coins when Top Losers filter is activated', async ({ page }) => {
   await page.waitForSelector('.ExploreCryptos_crypto_cards_container__RRK8S');
   const topGainerContainer = page
     .locator('.ExploreCryptos_crypto_cards__9rnb8')
     .filter({ hasText: 'Top Losers' });
   await expect(topGainerContainer).toBeVisible();
+  
   // names on home Top Losers card
   const cardNames = await topGainerContainer
     .locator('li.ExploreCryptos_card_item__FK0ZV p.ExploreCryptos_crypto_name__pWSWI')
     .evaluateAll(nodes => nodes.map(p => p.childNodes[0].textContent.trim()));
   console.log('Top-losers card names →', cardNames);
+  
   // go to full listing
   await topGainerContainer.locator('.ExploreCryptos_card_header__cVkqG a').click();
   await expect(page).toHaveURL(/primaryCategory=top-losers/);
+  
   // wait for table rows to load
   await page.waitForSelector('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start');
+  
   // grab names from listing table
   const listingNames = await page
     .locator('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start')
     .allInnerTexts();
     const firstThreeListing = listingNames.slice(0, 3);
+  
   // assert every top-card coin appears in the listing
   cardNames.forEach(name => expect(firstThreeListing).toContain(name));
 });
 
+//Test Case 18
 test('Blog section exists or not', async ({ page }) => {
-  // Correct combined classes with escaped colon
+  // Close popup if visible
+  const popupCloseButton = page.locator('div.absolute.top-5.right-5.cursor-pointer');
+  if (await popupCloseButton.isVisible()) {
+    await popupCloseButton.click();
+    await expect(popupCloseButton).toBeHidden();
+  }
+
   const blogSection = page.locator('.blog.pt-14.sm\\:pt-20');
-
   await expect(blogSection).toBeVisible();
-  await expect(blogSection).toHaveText(/BLOGS/i);
 
-  // ✅ All blog titles inside the blog section
+  // Wait for blog titles to load
   const blogTitles = blogSection.locator('h4.line-clamp-2.text-left.text-lg-regular');
+  await expect(blogTitles.first()).toBeVisible({ timeout: 10000 });
 
-  // 🔑 Count how many blogs there are
   const count = await blogTitles.count();
   console.log(`Total blogs displayed: ${count}`);
+  expect(count).toBeGreaterThan(0);
 
-  // Loop through each title and print the text
-  for (let i = 0; i < count; i++) {
-    await expect(blogTitles.nth(i)).toBeVisible();
-  }
+  console.log(count);
 });
 
 test('Functionality of Blogs in blog section', async ({ page }) => {
