@@ -1,16 +1,15 @@
-require('dotenv').config(); 
+require('dotenv').config();
 const { test, expect } = require('@playwright/test');
 
 // Run before every test
 test.beforeEach(async ({ page }) => {
-  const URL=process.env.URL;
+  const URL = process.env.URL;
   await page.goto(URL);
 });
 //Test Case 1
 test('Search bar works for bitcoin', async ({ page }) => {
   const searchInput = page.locator("input[placeholder='Search for cryptos']");
   const resultSection = page.locator('#search-crypto');
-
   await searchInput.click();
   await searchInput.fill('bitcoin');
   await page.keyboard.press('Enter');
@@ -132,7 +131,7 @@ test('Research Score category tabs are clickable', async ({ page }) => {
 
   // Wait for global overlay to disappear
   const overlay = page.locator(String.raw`.fixed.inset-0.z-\[99999\]`);
-  await overlay.waitFor({ state: 'detached' }).catch(() => {});
+  await overlay.waitFor({ state: 'detached' }).catch(() => { });
 
   const tabs = tabsContainer.locator('.researchtabs_tab_item__HHQXL');
   await expect(tabs).toHaveCount(17);
@@ -163,7 +162,7 @@ test('Top Gainers & Top Losers sections show 3 coins each', async ({ page }) => 
 
   // Each card should have its own <li> list inside
   const gainersCoins = gainers.locator('li');
-  const losersCoins  = losers.locator('li');
+  const losersCoins = losers.locator('li');
 
   await expect(gainersCoins).toHaveCount(3);
   await expect(losersCoins).toHaveCount(3);
@@ -187,8 +186,8 @@ test('Top Gainers "More" button works properly', async ({ page }) => {
   const gainersCard = page
     .locator('.ExploreCryptos_crypto_cards__9rnb8')
     .filter({ hasText: /top gainers/i });
-    await expect(gainersCard).toBeVisible();
- 
+  await expect(gainersCard).toBeVisible();
+
   // Locate the "More" button inside the card
   const moreButton = gainersCard.getByRole('link', { name: /more/i });
   await expect(moreButton).toBeVisible();
@@ -206,7 +205,7 @@ test('Top Losers "More" button works properly', async ({ page }) => {
   const losersCard = page
     .locator('.ExploreCryptos_crypto_cards__9rnb8')
     .filter({ hasText: /top losers/i });
-    await expect(losersCard).toBeVisible();
+  await expect(losersCard).toBeVisible();
 
   // Find the More button by role instead of CSS
   const moreButton = losersCard.getByRole('link', { name: /more/i });
@@ -222,7 +221,7 @@ test('Top Losers "More" button works properly', async ({ page }) => {
 //Test Case 14
 test('Research Score tabs show correct top currency', async ({ page }) => {
   const tabsContainer = page.locator('.researchtabs_tabs_container__HEvCz');
-  const title         = page.locator('.researchscore_top_currency__tF8U2');
+  const title = page.locator('.researchscore_top_currency__tF8U2');
 
   await expect(tabsContainer).toBeVisible();
   const popup = page.locator('div.animate-popupFadeIn');
@@ -262,12 +261,12 @@ test('Research Score tabs show correct top currency', async ({ page }) => {
 test('Check category-wise content updates from Research Score tab', async ({ page }) => {
   test.setTimeout(120_000);
 
-  const tabsContainer    = page.locator('.researchtabs_tabs_container__HEvCz');
+  const tabsContainer = page.locator('.researchtabs_tabs_container__HEvCz');
   const researchScoreTab = page.locator('.researchscore_research_card_container__u5szn');
-  const title            = researchScoreTab.locator('.researchscore_top_currency__tF8U2');
+  const title = researchScoreTab.locator('.researchscore_top_currency__tF8U2');
   // ---- NEWSLETTER POPUP HANDLER ----
-  const popup     = page.locator('div.animate-popupFadeIn');
-  const closeBtn  = popup.locator('div.absolute.top-5.right-5');
+  const popup = page.locator('div.animate-popupFadeIn');
+  const closeBtn = popup.locator('div.absolute.top-5.right-5');
 
   const dismissPopupIfVisible = async () => {
     if (await popup.isVisible()) {
@@ -337,26 +336,26 @@ test('Check Top Gainers listed coins are same as listing page coins when Top Gai
     .locator('.ExploreCryptos_crypto_cards__9rnb8')
     .filter({ hasText: 'Top Gainers' });
   await expect(topGainerContainer).toBeVisible();
-  
+
   // names on home Top Gainers card
   const cardNames = await topGainerContainer
     .locator('li.ExploreCryptos_card_item__FK0ZV p.ExploreCryptos_crypto_name__pWSWI')
     .evaluateAll(nodes => nodes.map(p => p.childNodes[0].textContent.trim()));
   console.log('Top-gainer card names →', cardNames);
-  
+
   // go to full listing
   await topGainerContainer.locator('.ExploreCryptos_card_header__cVkqG a').click();
   await expect(page).toHaveURL(/primaryCategory=top-gainers/);
-  
+
   // wait for table rows to load
   await page.waitForSelector('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start');
-  
+
   // grab names from listing table
   const listingNames = await page
     .locator('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start')
     .allInnerTexts();
-    const firstThreeListing = listingNames.slice(0, 3);
-  
+  const firstThreeListing = listingNames.slice(0, 3);
+
   // assert every top-card coin appears in the listing
   cardNames.forEach(name => expect(firstThreeListing).toContain(name));
 });
@@ -368,26 +367,26 @@ test('Check Top Losers listed coins are same as listing page coins when Top Lose
     .locator('.ExploreCryptos_crypto_cards__9rnb8')
     .filter({ hasText: 'Top Losers' });
   await expect(topGainerContainer).toBeVisible();
-  
+
   // names on home Top Losers card
   const cardNames = await topGainerContainer
     .locator('li.ExploreCryptos_card_item__FK0ZV p.ExploreCryptos_crypto_name__pWSWI')
     .evaluateAll(nodes => nodes.map(p => p.childNodes[0].textContent.trim()));
   console.log('Top-losers card names →', cardNames);
-  
+
   // go to full listing
   await topGainerContainer.locator('.ExploreCryptos_card_header__cVkqG a').click();
   await expect(page).toHaveURL(/primaryCategory=top-losers/);
-  
+
   // wait for table rows to load
   await page.waitForSelector('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start');
-  
+
   // grab names from listing table
   const listingNames = await page
     .locator('tr.border-box div.text-md-bold.mobile\\:text-sm-bold.text-\\[\\#DCDEE2\\].mobile\\:text-wrap.mobile\\:text-start')
     .allInnerTexts();
-    const firstThreeListing = listingNames.slice(0, 3);
-  
+  const firstThreeListing = listingNames.slice(0, 3);
+
   // assert every top-card coin appears in the listing
   cardNames.forEach(name => expect(firstThreeListing).toContain(name));
 });
@@ -415,9 +414,11 @@ test('Blog section exists or not', async ({ page }) => {
   console.log(count);
 });
 
+//added comment to check branch functions
+
 test('Functionality of Blogs in blog section', async ({ page }) => {
   const sectionSelector = '.blog.pt-14.sm\\:pt-20';
-  const titleSelector   = 'h4.line-clamp-2.text-left.text-lg-regular';
+  const titleSelector = 'h4.line-clamp-2.text-left.text-lg-regular';
   const blogSection = page.locator(sectionSelector);
   await expect(blogSection).toBeVisible();
   const total = await blogSection.locator(titleSelector).count();
@@ -425,7 +426,7 @@ test('Functionality of Blogs in blog section', async ({ page }) => {
 
   for (let i = 0; i < total; i++) {
     const titles = blogSection.locator(titleSelector);
-    const title  = titles.nth(i);
+    const title = titles.nth(i);
     await expect(title).toBeVisible();
     const text = await title.innerText();
 
