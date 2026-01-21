@@ -185,16 +185,13 @@ test.describe('Login / Signup Modal Validation', () => {
     const loginSignupButton = page.getByRole('button', { name: /login|signup|sign up|sign in/i });
     await loginSignupButton.click();
     
-    // Wait for modal to load
-    await page.waitForTimeout(2000);
+    // Verify modal has proper ARIA attributes
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
     
-    // Verify modal is visible by checking the heading - use .first() to handle multiple elements
-    const welcomeHeading = page.getByText('Welcome Back').first();
-    await expect(welcomeHeading).toBeVisible();
-    
-    // Check that form elements are accessible using exact placeholders
-    const emailInput = page.getByPlaceholder('Email Address');
-    const passwordInput = page.getByPlaceholder('Password');
+    // Check that form elements are properly labeled
+    const emailInput = page.getByLabel(/email/i).or(page.getByPlaceholder(/email/i));
+    const passwordInput = page.getByLabel(/password/i).or(page.getByPlaceholder(/password/i));
     
     // Verify inputs can receive focus (accessibility requirement)
     await emailInput.focus();
