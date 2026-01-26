@@ -3,3 +3,4 @@ node_modules/
 *.log
 secrets/
 test-results
+test/tax-calculator/ui/DEMO.spec.js
